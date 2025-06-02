@@ -1,0 +1,2010 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المحميات الطبيعية في مصر</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- مكتبة Leaflet للخرائط -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a5632 0%, #2a8c4a 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo img {
+            width: 50px;
+            height: 50px;
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 25px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 12px 20px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+        }
+        
+        .filters {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #1a5632;
+        }
+        
+        .filter-group select, 
+        .filter-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            font-size: 1rem;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        .search-box {
+            position: relative;
+            flex: 2;
+        }
+        
+        .search-box input {
+            padding-left: 45px;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+        }
+        
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+        
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-header {
+            padding: 20px;
+            background: linear-gradient(to right, #2a8c4a, #3daa62);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-type {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .card-title {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            color: #1a5632;
+            font-weight: 700;
+        }
+        
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            color: #666;
+            font-size: 0.95rem;
+        }
+        
+        .card-area {
+            font-weight: 700;
+            color: #2a8c4a;
+        }
+        
+        .card-features {
+            margin: 15px 0;
+        }
+        
+        .feature-title {
+            font-weight: 700;
+            color: #1a5632;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .feature-title i {
+            color: #2a8c4a;
+        }
+        
+        .feature-list {
+            padding-right: 20px;
+            color: #555;
+            font-size: 0.95rem;
+        }
+        
+        .feature-list li {
+            margin-bottom: 5px;
+        }
+        
+        .activities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .activity {
+            background-color: #e9f5ee;
+            color: #1a5632;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+        
+        .iucn-II { background-color: #4caf50; color: white; }
+        .iucn-III { background-color: #cddc39; color: #333; }
+        .iucn-IV { background-color: #ffc107; color: #333; }
+        .iucn-V { background-color: #ff9800; color: white; }
+        .iucn-VI { background-color: #f44336; color: white; }
+        
+        .unesco-badge {
+            background-color: #2196f3;
+            color: white;
+        }
+        
+        .ramsar-badge {
+            background-color: #9c27b0;
+            color: white;
+        }
+        
+        .map-container {
+            height: 600px;
+            background-color: #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 30px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+            border-radius: 12px;
+            z-index: 10;
+        }
+        
+        .map-info {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            max-width: 300px;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .chart-box {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #1a5632;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+        
+        footer {
+            background: linear-gradient(135deg, #1a5632 0%, #143d25 100%);
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: 50px;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .developer-info {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .developer-info h3 {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin: 30px 0;
+        }
+        
+        .view-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .view-btn {
+            padding: 10px 20px;
+            background-color: #e9f5ee;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #1a5632;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        .view-btn.active {
+            background-color: #2a8c4a;
+            color: white;
+        }
+        
+        .view-btn:hover {
+            background-color: #d1e7dd;
+        }
+        
+        .card-footer {
+            padding: 15px 20px;
+            background-color: #f9f9f9;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .source-link {
+            color: #2a8c4a;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        
+        .source-link:hover {
+            text-decoration: underline;
+        }
+        
+        .map-legend {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            font-size: 0.9rem;
+            max-width: 180px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-left: 8px;
+            border-radius: 50%;
+            border: 1px solid #777;
+        }
+        
+        @media (max-width: 992px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .stats {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+            
+            .filter-group {
+                width: 100%;
+            }
+            
+            .stat-item {
+                min-width: 80px;
+            }
+            
+            .map-container {
+                height: 450px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-tree fa-2x"></i>
+                    <h1>المحميات الطبيعية في مصر</h1>
+                </div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value">30</div>
+                        <div class="stat-label">محمية طبيعية</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">148,000+</div>
+                        <div class="stat-label">كم² مساحة إجمالية</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">6</div>
+                        <div class="stat-label">أنواع رئيسية</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="view-toggle">
+            <button class="view-btn active" id="view-cards"><i class="fas fa-th"></i> بطاقات</button>
+            <button class="view-btn" id="view-map"><i class="fas fa-map"></i> خريطة</button>
+            <button class="view-btn" id="view-stats"><i class="fas fa-chart-bar"></i> إحصائيات</button>
+        </div>
+        
+        <div class="filters">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="ابحث عن محمية أو موقع أو حيوان...">
+            </div>
+            
+            <div class="filter-group">
+                <label for="type-filter">نوع المحمية</label>
+                <select id="type-filter">
+                    <option value="all">جميع الأنواع</option>
+                    <option value="بحرية">بحرية</option>
+                    <option value="أراضي رطبة">أراضي رطبة</option>
+                    <option value="صحراوية">صحراوية</option>
+                    <option value="جيولوجية">جيولوجية</option>
+                    <option value="جبلية">جبلية</option>
+                    <option value="ساحلية">ساحلية</option>
+                    <option value="محيط حيوي">محيط حيوي</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="location-filter">الموقع</label>
+                <select id="location-filter">
+                    <option value="all">جميع المواقع</option>
+                    <option value="جنوب سيناء">جنوب سيناء</option>
+                    <option value="البحر الأحمر">البحر الأحمر</option>
+                    <option value="مطروح">مطروح</option>
+                    <option value="الوادي الجديد">الوادي الجديد</option>
+                    <option value="أسوان">أسوان</option>
+                    <option value="الفيوم">الفيوم</option>
+                    <option value="القاهرة">القاهرة</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="iucn-filter">فئة IUCN</label>
+                <select id="iucn-filter">
+                    <option value="all">جميع الفئات</option>
+                    <option value="II">II - الحديقة الوطنية</option>
+                    <option value="III">III - النصب الطبيعي</option>
+                    <option value="IV">IV - منطقة إدارة الموئل/الأنواع</option>
+                    <option value="V">V - المنظر الطبيعي/البحري المحمي</option>
+                    <option value="VI">VI - منطقة محمية بالموارد الطبيعية</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="cards-view">
+            <div class="cards-container" id="parks-container">
+                <!-- سيتم ملؤها بالبيانات -->
+            </div>
+        </div>
+        
+        <div id="map-view" style="display: none;">
+            <div class="map-container">
+                <div id="map"></div>
+                <div class="map-info">
+                    <p><i class="fas fa-info-circle"></i> انقر على أيقونة المحمية لمعرفة التفاصيل</p>
+                    <p><i class="fas fa-arrows-alt"></i> اسحب الخريطة للتنقل بين المحميات</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="stats-view" style="display: none;">
+            <div class="charts-container">
+                <div class="chart-box">
+                    <div class="chart-title">توزيع المحميات حسب النوع</div>
+                    <div class="chart-container">
+                        <canvas id="typeChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-box">
+                    <div class="chart-title">المساحة الإجمالية حسب النوع (كم²)</div>
+                    <div class="chart-container">
+                        <canvas id="areaChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-box">
+                    <div class="chart-title">المحميات حسب السنة</div>
+                    <div class="chart-container">
+                        <canvas id="yearChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-box">
+                    <div class="chart-title">توزيع فئات IUCN</div>
+                    <div class="chart-container">
+                        <canvas id="iucnChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="developer-info">
+                    <h3><i class="fas fa-user-tie"></i> معلومات المطور</h3>
+                    <p>صمم وطور هذه المنصة الدكتور محمد ابراهيم الحلو، خبير التنوع البيولوجي  والمحميات الطبيعية.</p>
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-building"></i>
+                            <span>قطاع حماية الطبيعة - جهاز شئون البيئة</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>melhellw@gmail.com</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>melhellw@yahoo.com</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span>+20 1062384894</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="about">
+                    <h3><i class="fas fa-info-circle"></i> حول المشروع</h3>
+                    <p>هذه المنصة تهدف إلى التعريف بالمحميات الطبيعية في مصر وزيادة الوعي بأهمية الحفاظ على التنوع البيولوجي والتراث الطبيعي المصري.</p>
+                    <p>تم تطوير المنصة باستخدام أحدث تقنيات الويب لتقديم تجربة تفاعلية شاملة للمستخدمين.</p>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                &copy; 2025 جميع الحقوق محفوظة - وزارة البيئة المصرية - جهاز شئون البيئة
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // بيانات المحميات الطبيعية مع إحداثيات GPS
+        const nationalParks = [
+            {
+                "id": "EG-01",
+                "name": "رأس محمد",
+                "type": "بحرية",
+                "location": "جنوب سيناء",
+                "coordinates": [27.7345, 34.2508],
+                "declaration_year": 1983,
+                "area_km2": 850,
+                "unesco_status": false,
+                "iucn_category": "II",
+                "key_features": "نقطة التقاء خليجي السويس والعقبة - تشكيلات مرجانية - أنظمة كهوف تحت الماء - أشجار القرم - بحيرات مالحة",
+                "marine_life": "220 نوع مرجان - 1000+ نوع أسماك (باركودا، تونة، نابليون) - قروش (المطرقة، الحوت) - سلاحف بحرية (صقرية المنقار) - دلافين - حيتان أحدب (موسمية)",
+                "wildlife": "ثعالب رملية - أرانب برية - زواحف (سحالي، ثعابين) - 40+ نوع طيور مهاجرة",
+                "vegetation": "أشجار القرم (أفيسينيا مارينا) - نباتات ملحية - أعشاب بحرية",
+                "activities": [
+                    {"name": "الغوص", "season": ["أبريل", "نوفمبر"], "permit_required": true},
+                    {"name": "الغطس الحر (السنوركلينغ)", "season": ["طوال العام"], "permit_required": true},
+                    {"name": "رحلات القوارب", "season": ["طوال العام"], "permit_required": true},
+                    {"name": "الغطس الليلي", "season": ["مارس", "نوفمبر"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "مرصد القرش", "description": "منطقة غوص متقدمة (جدار مرجاني عمودي)", "accessibility": "متوسط"},
+                    {"name": "بحيرة المسحورة", "description": "بحيرة مالحة طبيعية بخصائص علاجية", "accessibility": "سهل"},
+                    {"name": "شعاب يولاندا", "description": "حطام سفينة شهيرة (للغواصين المحترفين فقط)", "accessibility": "صعب"},
+                    {"name": "قناة المانجروف", "description": "ممر مائي بأشجار القرم النادرة", "accessibility": "سهل (قارب)"}
+                ],
+                "sources": [
+                    "EEAA.gov.eg", 
+                    "IUCN: Protected Planet ID 1936",
+                    "Ras Mohammed National Park Management Plan 2023",
+                    "Global Coral Reef Monitoring Network Report 2024"
+                ]
+            },
+            {
+                "id": "EG-02",
+                "name": "الزرانيق",
+                "type": "أراضي رطبة",
+                "location": "شمال سيناء (بجوار بحيرة البردويل)",
+                "coordinates": [31.1667, 33.5333],
+                "declaration_year": 1985,
+                "area_km2": 250,
+                "ramsar_site": true,
+                "ramsar_site_id": "EG2",
+                "iucn_category": "IV",
+                "key_features": "بحيرات ساحلية - سبخات ملحية - كثبان رملية - أهم ممر لهجرة الطيور في مصر",
+                "marine_life": "70+ نوع أسماك (بوري، قاروص، دنيس) - 40+ نوع قشريات - محاريات - سلاحف بحرية خضراء مهددة",
+                "wildlife": "265+ نوع طيور مهاجرة (بجع أبيض، فلامنجو كبير، لقلق أبيض، زقزاق ذهبي مهدد) - 20 نوعاً من الثدييات الصغيرة",
+                "vegetation": "نباتات ملحية (ساليكورنيا، ثيماريا، جونكوس) - 14 نوعاً متخصصاً في البيئات المالحة",
+                "activities": [
+                    {"name": "مراقبة الطيور", "season": ["سبتمبر", "مايو"], "permit_required": false},
+                    {"name": "التصوير الفوتوغرافي", "season": ["طوال العام"], "permit_required": false},
+                    {"name": "السياحة البيئية التعليمية", "season": ["أكتوبر", "أبريل"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "سبخة البردويل", "description": "موئل رئيسي للطيور المهاجرة وأهم موقع لفلامنجو في مصر", "accessibility": "سهل"},
+                    {"name": "بحيرة الفردوس", "description": "أعمق بحيرات المحمية وتستضيف أكبر تجمعات البجع", "accessibility": "متوسط"},
+                    {"name": "منطقة الكثبان الرملية", "description": "موئل النباتات الملحية النادرة", "accessibility": "سهل"}
+                ],
+                "sources": [
+                    "Ramsar Sites Information Service (RSIS No. 602)", 
+                    "EEAA Annual Report 2023",
+                    "BirdLife International: Important Bird Area EG015",
+                    "Mediterranean Wetlands Observatory"
+                ]
+            },
+            {
+                "id": "EG-03",
+                "name": "محمية علبة الطبيعية",
+                "type": "محيط حيوي",
+                "location": "البحر الأحمر",
+                "coordinates": [22.1833, 36.3667],
+                "declaration_year": 1986,
+                "area_km2": 35600,
+                "unesco_status": true,
+                "iucn_category": "IV",
+                "key_features": "نظام بيئي فريد - غابات ضبابية - جبل علبة - أنظمة بحرية ساحلية",
+                "wildlife": "الضبع المخطط - الوعل النوبي - قط الرمال - 231 نوع طيور",
+                "vegetation": "أشجار اللبان - الكاذي - الطلح - الدوم",
+                "activities": [
+                    {"name": "السفاري الجبلية", "season": ["أكتوبر", "أبريل"], "permit_required": true},
+                    {"name": "سياحة البيئة البحرية", "season": ["مارس", "نوفمبر"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "وادي حيملا", "description": "مسار جبلي إلى قمة علبة", "accessibility": "متوسط"},
+                    {"name": "شعاب أبو رماد المرجانية", "description": "مناطق غوص متقدمة", "accessibility": "صعب"},
+                    {"name": "وادي دئيب", "description": "سبخات ملحية وموئل للطيور", "accessibility": "سهل"}
+                ],
+                "sources": [
+                    "UNESCO MAB Database (2023 Update)",
+                    "Egyptian Environmental Affairs Agency (EEAA 2023 Report)",
+                    "IUCN Red List (2024 Assessment)"
+                ]
+            },
+            {
+                "id": "EG-04",
+                "name": "محمية نبق الطبيعية",
+                "type": "ساحلية",
+                "location": "جنوب سيناء",
+                "coordinates": [28.0000, 34.4167],
+                "declaration_year": 1992,
+                "area_km2": 600,
+                "iucn_category": "V",
+                "key_features": "غابات المانجروف - الشعاب المرجانية - الوديان الجبلية - السبخات الساحلية",
+                "wildlife": "الغزال المصري - الوبر الصخري - العقاب النسارية - الخواضات",
+                "vegetation": "المانجروف (أفيسينيا مارينا) - الأكاسيا - النباتات الملحية",
+                "activities": [
+                    {"name": "الغوص والسنوركل", "season": ["أكتوبر", "أبريل"], "permit_required": true},
+                    {"name": "رحلات غابات المانجروف", "season": ["طوال العام"], "permit_required": true},
+                    {"name": "السفاري الصحراوي", "season": ["نوفمبر", "مارس"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "مركز زوار المحمية", "description": "نقطة بداية الجولات والمعلومات", "accessibility": "سهل"},
+                    {"name": "منطقة الشعاب المرجانية", "description": "مواقع غوص ممتازة", "accessibility": "متوسط"},
+                    {"name": "وادي المانجروف", "description": "ممر مائي بأشجار القرم", "accessibility": "سهل (قارب)"}
+                ],
+                "sources": [
+                    "جهاز شئون البيئة المصري",
+                    "قرار رئيس مجلس الوزراء رقم 1511 لسنة 1992"
+                ]
+            },
+            {
+                "id": "EG-05",
+                "name": "محمية أبو جالوم",
+                "type": "ساحلية",
+                "location": "جنوب سيناء",
+                "coordinates": [28.5833, 34.5333],
+                "declaration_year": 1992,
+                "area_km2": 500,
+                "iucn_category": "V",
+                "key_features": "المنظومة البيئية الساحلية الفريدة - جروف صخرية جيرية - وديان غنية بالمياه الجوفية",
+                "marine_life": "127 نوع مرجان - أسماك المهرج - السلحفاة الخضراء - دولفين المحيط الهندي",
+                "wildlife": "الوبر الصخري - ثعلب روبل - الورل الصحراوي - عقاب السهول",
+                "vegetation": "نباتات طبية (شيح سينائي، قيصوم) - نباتات ملحية - نباتات حولية",
+                "activities": [
+                    {"name": "التخييم", "season": ["أكتوبر", "مايو"], "permit_required": true},
+                    {"name": "المشي لمسافات طويلة", "season": ["نوفمبر", "أبريل"], "permit_required": true},
+                    {"name": "الغطس الحر", "season": ["مارس", "نوفمبر"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "وادي الرساسة", "description": "مسار جيولوجي فريد بين تكوينات الحجر الرملي", "accessibility": "متوسط"},
+                    {"name": "شاطئ بلو لاجون", "description": "محمية طبيعية بحرية ذات مياه فيروزية", "accessibility": "سهل"},
+                    {"name": "مغارة الرمل", "description": "تشكيلات جيولوجية تحت الماء", "accessibility": "صعب"}
+                ],
+                "sources": [
+                    "EEAA Annual Report 2023",
+                    "Sinai Environmental Observatory (2024)",
+                    "Global Coral Reef Monitoring Network - Egypt Chapter"
+                ]
+            },
+            {
+                "id": "EG-06",
+                "name": "وادي الجمال-حماطة",
+                "type": "حديقة وطنية",
+                "location": "البحر الأحمر",
+                "coordinates": [24.6333, 35.0333],
+                "declaration_year": 2003,
+                "area_km2": 7450,
+                "iucn_category": "II",
+                "key_features": "60 كم من الساحل البكر - 5 جزر مرجانية - جبال ساحلية شاهقة - ينابيع مياه عذبة",
+                "marine_life": "عروس البحر (الدوجونج) - السلاحف الخضراء - السلاحف منقارية الصقر - الدلافين",
+                "wildlife": "غزال الدوركاس - الوعل النوبي - الخروف البربري - الثعلب الأحمر - الضبع المرقط",
+                "vegetation": "أشجار السنط الصحراوية - نباتات ملحية ساحلية - أعشاب بحرية - نباتات جبلية صحراوية",
+                "activities": [
+                    {"name": "الغوص والغطس", "season": ["مارس", "نوفمبر"], "permit_required": true},
+                    {"name": "رحلات الجمال", "season": ["أكتوبر", "أبريل"], "permit_required": false},
+                    {"name": "مراقبة الطيور", "season": ["نوفمبر", "مارس"], "permit_required": false},
+                    {"name": "التخييم البيئي", "season": ["أكتوبر", "أبريل"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "جزيرة وادي الجمال", "description": "موطن عروس البحر والسلاحح", "accessibility": "متوسط"},
+                    {"name": "شاطئ حماطة", "description": "60 كم من الشواطئ البكر الرملية", "accessibility": "سهل"},
+                    {"name": "جبال الزبرجد", "description": "تكوينات جيولوجية نادرة", "accessibility": "صعب"}
+                ],
+                "sources": [
+                    "وزارة البيئة المصرية - إدارة المحميات الطبيعية",
+                    "Red Sea Protectorates Network",
+                    "PERSGA - المنظمة الإقليمية لحماية بيئة البحر الأحمر"
+                ]
+            },
+            {
+                "id": "EG-07",
+                "name": "الجزر الشمالية",
+                "type": "بحرية",
+                "location": "البحر الأحمر",
+                "coordinates": [27.3000, 33.7833],
+                "declaration_year": 2006,
+                "area_km2": 1991,
+                "iucn_category": "IV",
+                "key_features": "شبكة معقدة من الجزر المرجانية والشعاب المرجانية",
+                "marine_life": "الشعاب المرجانية المتنوعة - الأسماك المرجانية - السلاحف البحرية - الدلافين",
+                "wildlife": "الطيور البحرية المهاجرة - طيور النورس - الصقور البحرية",
+                "vegetation": "الأعشاب البحرية - الطحالب البحرية - النباتات الملحية الساحلية",
+                "activities": [
+                    {"name": "الغطس الحر (السنوركلنج)", "season": ["أكتوبر", "مايو"], "permit_required": true},
+                    {"name": "الغطس بالأنابيب", "season": ["أكتوبر", "مايو"], "permit_required": true},
+                    {"name": "رحلات القوارب السياحية", "season": ["طوال العام"], "permit_required": true},
+                    {"name": "مراقبة الطيور", "season": ["نوفمبر", "مارس"], "permit_required": false}
+                ],
+                "visit_sites": [
+                    {"name": "جزيرة الجفتون الكبير", "description": "أكبر الجزر مع شواطئ رملية ومواقع غطس متميزة", "accessibility": "سهل"},
+                    {"name": "جزيرة الجفتون الصغير", "description": "منطقة غوص ممتازة مع تنوع مرجاني استثنائي", "accessibility": "متوسط"},
+                    {"name": "منطقة الشعاب الشمالية", "description": "مجموعة شعاب مرجانية للغواصين المتقدمين", "accessibility": "صعب"}
+                ],
+                "sources": [
+                    "وزارة البيئة المصرية - قطاع حماية الطبيعة",
+                    "Red Sea Protectorates Network",
+                    "Hurghada Environmental Center"
+                ]
+            },
+            {
+                "id": "EG-08",
+                "name": "محمية السلوم البحرية",
+                "type": "ساحلية",
+                "location": "مطروح",
+                "coordinates": [31.5667, 25.1500],
+                "declaration_year": 2010,
+                "area_km2": 383,
+                "ramsar_site": true,
+                "iucn_category": "II",
+                "key_features": "ساحل صخري سليم - بحيرة ساحلية ضحلة - كهوف جيرية أثرية - شعاب مرجانية طبيعية",
+                "marine_life": "14 نوع مرجان - 76 نوع أسماك - السلحفاة الخضراء - البوسيدونيا المحيطية",
+                "wildlife": "البجع الأبيض - النحام الوردي - العقاب النساري - غزال دوركاس - ثعلب الفنك",
+                "vegetation": "الأرطى - الطرفة - الحلفا - السويدة - البوسيدونيا المحيطية",
+                "activities": [
+                    {"name": "مراقبة الطيور", "season": ["سبتمبر", "مايو"], "permit_required": true},
+                    {"name": "الغوص العلمي", "season": ["مايو", "سبتمبر"], "permit_required": true},
+                    {"name": "السفاري البيئي", "season": ["أكتوبر", "أبريل"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "البحيرة الساحلية", "description": "بحيرة شبه مغلقة متصلة بالبحر المتوسط", "accessibility": "متوسط"},
+                    {"name": "مغارة الجدارية", "description": "كهوف تحتوي على نقوش صخرية تعود لعصر ما قبل التاريخ", "accessibility": "صعب"},
+                    {"name": "شعاب السلوم المرجانية", "description": "آخر نظام مرجاني طبيعي في البحر المتوسط المصري", "accessibility": "صعب جداً"}
+                ],
+                "sources": [
+                    "جهاز شئون البيئة المصري",
+                    "قرار رئيس مجلس الوزراء رقم 542 لسنة 2010",
+                    "منظمة رامسار"
+                ]
+            },
+            {
+                "id": "EG-09",
+                "name": "الأحراش",
+                "type": "ساحلية",
+                "location": "شمال سيناء",
+                "coordinates": [31.0833, 33.8333],
+                "declaration_year": 1985,
+                "area_km2": 6,
+                "iucn_category": "IV",
+                "key_features": "كثبان رملية - أحراش ملحية - سبخات ساحلية",
+                "wildlife": "طيور مهاجرة - ثدييات صغيرة - زواحف",
+                "vegetation": "أحراش ملحية (أرطى، غردق، طرفة، سويدة، ثمام، عادر) - أشجار الأكاسيا النادرة",
+                "activities": [
+                    {"name": "مراقبة الطيور", "season": ["خريف", "ربيع"], "permit_required": true},
+                    {"name": "دراسة النباتات المتكيفة", "season": ["طوال العام"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "منطقة الكثبان الرملية الساحلية", "description": "مشاهدة تشكيلات الكثبان الرملية والنباتات الملحية", "accessibility": "متوسط"},
+                    {"name": "ممرات مراقبة الطيور", "description": "مناطق محددة لرصد الطيور المهاجرة والمقيمة", "accessibility": "سهل"}
+                ],
+                "sources": ["جهاز شئون البيئة المصري - القرار الوزاري 1429/1985"]
+            },
+            {
+                "id": "EG-10",
+                "name": "العميد",
+                "type": "صحراوية",
+                "location": "مطروح",
+                "coordinates": [31.0333, 27.2333],
+                "declaration_year": 1986,
+                "area_km2": 750,
+                "iucn_category": "VI",
+                "key_features": "هضاب جيرية - كثبان رملية متحركة - منخفضات ملحية - منطقة انتقالية بين الصحراء والساحل",
+                "wildlife": "ثعلب الفنك (أصغر ثعالب العالم) - أرنب بري مصري - غزال دوركاس - قنفذ الصحراء - 32 نوعاً من الزواحف",
+                "vegetation": "أعشاب صحراوية (شيح، رتم، عجرم) - 126 نوعاً نباتياً (19 نوعاً طبياً) - نباتات ملحية",
+                "activities": [
+                    {"name": "السفاري الصحراوية", "season": ["سبتمبر", "مايو"], "permit_required": true},
+                    {"name": "مراقبة الحياة البرية", "season": ["طوال العام"], "permit_required": false},
+                    {"name": "رصد النباتات النادرة", "season": ["فبراير", "أبريل"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "منطقة الكثبان المتحركة", "description": "أعلى الكثبان الرملية في غرب مصر (100م)", "accessibility": "متوسط"},
+                    {"name": "واحة المغرة", "description": "منخفض طبيعي يحتوي على نباتات ملحية نادرة", "accessibility": "سهل"},
+                    {"name": "هضبة الحجر الجيري", "description": "تشكيلات جيولوجية تعود للعصر الميوسيني", "accessibility": "صعب"}
+                ],
+                "sources": [
+                    "EEAA.gov.eg", 
+                    "Matrouh Environmental Affairs Agency Report 2023"
+                ]
+            },
+            {
+                "id": "EG-11",
+                "name": "سالوجا وغزال",
+                "type": "أراضي رطبة",
+                "location": "أسوان",
+                "coordinates": [24.0833, 32.8833],
+                "declaration_year": 1986,
+                "area_km2": 0.9,
+                "ramsar_site": true,
+                "iucn_category": "IV",
+                "key_features": "5 جزر نيلية - مستنقعات - صخور جرانيتية عمرها 500 مليون سنة - ممر هجرة طيور عالمي",
+                "marine_life": "أسماك نيلية (بلطي، قشر البياض، لبيس) - سلاحف نهرية - قشريات",
+                "wildlife": "غزال دوركاس (مهدد بالانقراض) - قطط برية - 60+ نوع طيور (أبو قردان، بلشون، عقاب نساري)",
+                "vegetation": "نباتات مائية (بردى، لوتس) - أشجار السنط - تين الدوم - ورد النيل (غازي)",
+                "activities": [
+                    {"name": "الرحلات النيلية", "season": ["سبتمبر", "مايو"], "permit_required": true},
+                    {"name": "مراقبة الطيور", "season": ["طوال العام"], "permit_required": false},
+                    {"name": "التصوير البيئي", "season": ["نوفمبر", "مارس"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "جزيرة سالوجا", "description": "موئل رئيسي للغزال المصري المهدد بالانقراض", "accessibility": "سهل (قارب)"},
+                    {"name": "جزيرة غزال", "description": "غابة نيلية كثيفة بأشجار السنط المعمرة", "accessibility": "سهل (قارب)"},
+                    {"name": "منطقة الصخور الجرانيتية", "description": "تشكيلات صخرية نادرة من عصر ما قبل الكمبري", "accessibility": "متوسط"}
+                ],
+                "sources": [
+                    "EEAA.gov.eg", 
+                    "Ramsar Sites Information Service (RSIS)"
+                ]
+            },
+            {
+                "id": "EG-12",
+                "name": "سانت كاترين",
+                "type": "جبلية",
+                "location": "جنوب سيناء",
+                "coordinates": [28.5567, 33.9764],
+                "declaration_year": 1988,
+                "area_km2": 4350,
+                "unesco_status": true,
+                "iucn_category": "Ib",
+                "key_features": "أعلى قمم مصر - وديان عميقة - 700 موقع أثري - 33 نوعاً نباتياً مستوطناً",
+                "wildlife": "وعول نوبية - ذئاب عربية - ثعالب حمراء - ضباع مخططة - وبر صخري",
+                "vegetation": "أشجار العرعر - سرو - طلح - بوقية سيناوية (نادر) - زعتر بري",
+                "activities": [
+                    {"name": "تسلق الجبال", "season": ["مارس-مايو", "سبتمبر-نوفمبر"], "permit_required": true},
+                    {"name": "مراقبة النجوم", "season": ["طوال العام"], "permit_required": false},
+                    {"name": "زيارة المواقع الأثرية", "season": ["طوال العام"], "permit_required": true},
+                    {"name": "رحلات استكشاف النباتات النادرة", "season": ["أبريل-يونيو"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "دير سانت كاترين", "description": "أقدم دير مسيحي في العالم (تراث عالمي)", "accessibility": "سهل"},
+                    {"name": "جبل موسى", "description": "قمة مقدسة (2285م) - مسار الرحلة الليلية", "accessibility": "صعب"},
+                    {"name": "جبل كاترين", "description": "أعلى قمة في مصر (2629م)", "accessibility": "صعب"},
+                    {"name": "وادي الأربعين", "description": "وادي النقوش الصخرية والكنائس التاريخية", "accessibility": "متوسط"}
+                ],
+                "sources": [
+                    "EEAA.gov.eg", 
+                    "UNESCO World Heritage Description"
+                ]
+            },
+            {
+                "id": "EG-13",
+                "name": "محمية أشتوم الجميل",
+                "type": "أراضي رطبة",
+                "location": "بورسعيد",
+                "coordinates": [31.2500, 32.3000],
+                "declaration_year": 1998,
+                "area_km2": 180,
+                "ramsar_site": true,
+                "iucn_category": "IV",
+                "key_features": "نظام البوغازات - حواجز رملية ديناميكية - مستنقعات ملحية - مروج أعشاب بحرية",
+                "marine_life": "قشريات - أسماك البوري - السلحفاة الخضراء",
+                "wildlife": "245 نوع طيور (75% مهاجرة) - ثعلب الماء (القضاعة) - فأر المستنقعات",
+                "vegetation": "نباتات مستنقعات (القصب، البردي) - نباتات ملحية (الشورى، السويدا) - أعشاب بحرية",
+                "activities": [
+                    {"name": "مراقبة الطيور", "season": ["سبتمبر", "أبريل"], "permit_required": true},
+                    {"name": "رحلات القوارب العلمية", "season": ["طوال العام"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "بوغاز أشتوم", "description": "نقطة التقاء المياه العذبة والمالحة", "accessibility": "سهل"},
+                    {"name": "متحف الأراضي الرطبة", "description": "عروض تفاعلية عن النظام البيئي", "accessibility": "سهل"}
+                ],
+                "sources": [
+                    "Ramsar Sites Information Service (2024 Update)",
+                    "EEAA Annual Conservation Report 2023"
+                ]
+            },
+            {
+                "id": "EG-14",
+                "name": "محمية البرلس",
+                "type": "أراضي رطبة",
+                "location": "كفر الشيخ",
+                "coordinates": [31.5000, 30.9333],
+                "declaration_year": 1998,
+                "area_km2": 460,
+                "ramsar_site": true,
+                "iucn_category": "IV",
+                "key_features": "ثاني أكبر بحيرات مصر - شبكة جزر رملية - نظام ثلاثي: مياه عذبة - شروب - مالحة",
+                "marine_life": "البوري الرمادي - البلطي النيلي - الجمبري الأبيض",
+                "wildlife": "الفلامنجو الكبير - البجع الأبيض - البلشون الأرجواني - سلحفاة المستنقعات",
+                "vegetation": "نباتات مائية (البوط، القصب) - نباتات جزر (الغاب، الطرفة) - أعشاب بحرية",
+                "activities": [
+                    {"name": "صيد السمك", "season": ["طوال العام"], "permit_required": true},
+                    {"name": "رحلات القوارب البيئية", "season": ["طوال العام"], "permit_required": true},
+                    {"name": "مراقبة الطيور", "season": ["نوفمبر", "مارس"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "جزيرة البجع", "description": "أكبر موقع تعشيش للبجع الأبيض في مصر", "accessibility": "متوسط"},
+                    {"name": "بوغاز البرلس", "description": "بوابة اتصال البحيرة بالبحر المتوسط", "accessibility": "سهل"},
+                    {"name": "مركز الزوار البيئي", "description": "متحف تفاعلي ونماذج ثلاثية الأبعاد", "accessibility": "سهل"}
+                ],
+                "sources": [
+                    "Ramsar Sites Information Service (2024 Update)",
+                    "EEAA: Lake Burullus Conservation Strategy 2023-2030"
+                ]
+            },
+            {
+                "id": "EG-15",
+                "name": "محمية بحيرة قارون",
+                "type": "أراضي رطبة",
+                "location": "الفيوم",
+                "coordinates": [29.4667, 30.6000],
+                "declaration_year": 1989,
+                "area_km2": 1385,
+                "ramsar_site": true,
+                "iucn_category": "IV",
+                "key_features": "أقدم بحيرة طبيعية في العالم - تلال أحفورية تعود لعصر الإيوسين - نظام بيئي فريد - مواقع أثرية",
+                "wildlife": "الفلروب الأحمر العنق - الخواضة طويلة الأصابع - البط البري - ثعلب الفنك - أرنب بري",
+                "vegetation": "نباتات ملحية (الطرفا، الرغل، السويدا) - نباتات مائية (البوص، الطرفة) - نباتات صحراوية",
+                "activities": [
+                    {"name": "زيارة المواقع الأثرية", "season": ["طوال العام"], "permit_required": false},
+                    {"name": "مراقبة الطيور", "season": ["أكتوبر", "مارس"], "permit_required": true},
+                    {"name": "رحلات السفاري الجيولوجية", "season": ["نوفمبر", "فبراير"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "بحيرة قارون", "description": "أقدم بحيرة طبيعية في العالم ذات نظام بيئي فريد", "accessibility": "سهل"},
+                    {"name": "جبل قطراني", "description": "موقع أحافير بحرية يعود للإيوسين", "accessibility": "متوسط"},
+                    {"name": "مرصد الطيور", "description": "موقع لمراقبة الطيور المهاجرة", "accessibility": "سهل"}
+                ],
+                "sources": [
+                    "Ramsar Sites Information Service (2024)",
+                    "EEAA: Lake Qarun Conservation Report 2023"
+                ]
+            },
+            {
+                "id": "EG-16",
+                "name": "محمية وادي الريان",
+                "type": "صحراوية",
+                "location": "الفيوم",
+                "coordinates": [29.2000, 30.3833],
+                "declaration_year": 1989,
+                "area_km2": 1759,
+                "iucn_category": "IV",
+                "key_features": "شلالات صناعية - بحيرتان رئيسيتان - عيون كبريتية طبيعية - كثبان رملية متحركة",
+                "wildlife": "الغزال المصري - ثعلب الفنك - ثعلب الرمل - الذئب العربي - قط الرمال",
+                "vegetation": "السنط الملحي - الرطريط - العجرم - الطرفة",
+                "activities": [
+                    {"name": "مشاهدة الشلالات", "season": ["طوال العام"], "permit_required": false},
+                    {"name": "رحلات السفاري الصحراوية", "season": ["نوفمبر", "مارس"], "permit_required": true},
+                    {"name": "مراقبة الطيور", "season": ["سبتمبر", "أبريل"], "permit_required": false},
+                    {"name": "زيارة منطقة العيون الكبريتية", "season": ["طوال العام"], "permit_required": false}
+                ],
+                "visit_sites": [
+                    {"name": "شلالات الريان", "description": "شلالات صناعية بارتفاع 15م", "accessibility": "سهل"},
+                    {"name": "بحيرة العيون", "description": "بحيرة صغيرة تتغذى من 3 عيون كبريتية", "accessibility": "متوسط"},
+                    {"name": "قمة جبل المدورة", "description": "أعلى نقطة بالمحمية (220م)", "accessibility": "صعب"}
+                ],
+                "sources": [
+                    "EEAA.gov.eg - التقرير السنوي 2024",
+                    "وزارة البيئة المصرية: خطة إدارة المحمية 2023-2028"
+                ]
+            },
+            {
+                "id": "EG-17",
+                "name": "وادي العلاقي",
+                "type": "صحراوية",
+                "location": "أسوان",
+                "coordinates": [22.5000, 33.5000],
+                "declaration_year": 1989,
+                "area_km2": 23000,
+                "unesco_status": true,
+                "iucn_category": "VI",
+                "key_features": "صخور جرانيتية - وديان عميقة - جبال شاهقة - نقوش صخرية تاريخية",
+                "wildlife": "غزال دوركاس - الوعل النوبي - ثعلب روبل - قط الرمال - الضبع المخطط",
+                "vegetation": "السنط الطلح - السنط السمر - شجيرات الرتم - نبات الحنظل",
+                "activities": [
+                    {"name": "رحلات السفاري بالدليل", "season": ["أكتوبر", "أبريل"], "permit_required": true},
+                    {"name": "زيارة مواقع التعدين التاريخية", "season": ["نوفمبر", "مارس"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "منجم وادي المغارة", "description": "آثار تعدين ذهب تعود للعصر الفرعوني", "accessibility": "صعب"},
+                    {"name": "عين العلاقي الكبريتية", "description": "نبع مائي كبريتي دافئ - موسمي الجريان", "accessibility": "متوسط"}
+                ],
+                "sources": [
+                    "UNESCO: Wadi Allaqi Biosphere Reserve Document (2020)",
+                    "EEAA.gov.eg - Protected Areas Report"
+                ]
+            },
+            {
+                "id": "EG-18",
+                "name": "وادي الأسيوطي",
+                "type": "صحراوية",
+                "location": "أسيوط",
+                "coordinates": [27.1833, 31.1667],
+                "declaration_year": 1989,
+                "area_km2": 35,
+                "iucn_category": "IV",
+                "key_features": "منحدرات جبلية - وديان عميقة - تشكيلات صخرية جوراسية",
+                "wildlife": "ماعز جبلي (بدن) - غزال مصري - ثعالب صحراوية",
+                "vegetation": "شيح - شيبة - نباتات صحراوية متكيفة",
+                "activities": [
+                    {"name": "مراقبة الحياة البرية", "season": ["طوال العام"], "permit_required": false},
+                    {"name": "السفاري الخفيفة", "season": ["أكتوبر", "أبريل"], "permit_required": true},
+                    {"name": "تسلق الصخور (محدود)", "season": ["نوفمبر", "فبراير"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "محطة الأبحاث", "description": "مركز لمراقبة الحياة البرية وتوعية الزوار", "accessibility": "سهل"},
+                    {"name": "نقطة مشاهدة القوس الصخري", "description": "تشكيل صخري طبيعي على شكل قوس", "accessibility": "متوسط"},
+                    {"name": "وادي النقوش", "description": "منطقة تحتوي على نقوش صخرية قديمة", "accessibility": "صعب"}
+                ],
+                "sources": [
+                    "EEAA: Wadi El-Assiuti Protected Area Management Plan (2023)",
+                    "Assiut University: Ecological Survey of Eastern Desert (2021)"
+                ]
+            },
+            {
+                "id": "EG-19",
+                "name": "قبة الحسنة",
+                "type": "جيولوجية",
+                "location": "الجيزة",
+                "coordinates": [29.8333, 31.2333],
+                "declaration_year": 1989,
+                "area_km2": 1,
+                "iucn_category": "III",
+                "key_features": "حفريات - تكوينات جيولوجية (أهرامات طبيعية)",
+                "wildlife": "حفريات بحرية قديمة",
+                "vegetation": "نباتات صحراوية",
+                "activities": [
+                    {"name": "الزيارات التعليمية", "season": ["طوال العام"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "منطقة الحفريات", "description": "موقع حوت الباسيلوسورس", "accessibility": "سهل"}
+                ],
+                "sources": ["Egyptian Geological Museum", "EEAA.gov.eg"]
+            },
+            {
+                "id": "EG-20",
+                "name": "الغابة المتحجرة",
+                "type": "جيولوجية",
+                "location": "القاهرة",
+                "coordinates": [30.0500, 31.2333],
+                "declaration_year": 1989,
+                "area_km2": 7,
+                "iucn_category": "III",
+                "key_features": "غابات متحجرة - تلال جيرية",
+                "wildlife": "زواحف صحراوية - حشرات",
+                "vegetation": "أشجار متحجرة (سيكويا، نخيل) عمرها 35 مليون سنة",
+                "activities": [
+                    {"name": "التمشية", "season": ["طوال العام"], "permit_required": false},
+                    {"name": "الزيارات التعليمية", "season": ["طوال العام"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "متحف الهواء الطلق", "description": "عرض للأخشاب المتحجرة", "accessibility": "سهل"}
+                ],
+                "sources": ["Egyptian Geological Museum", "EEAA.gov.eg"]
+            },
+            {
+                "id": "EG-21",
+                "name": "كهف وادي سنور",
+                "type": "جيولوجية",
+                "location": "بني سويف",
+                "coordinates": [28.9167, 30.8333],
+                "declaration_year": 1992,
+                "area_km2": 12,
+                "iucn_category": "III",
+                "key_features": "أندر تكوينات الصواعد والهوابط الكلسية في العالم - تكونت منذ 65 مليون سنة",
+                "wildlife": "خفافيش الفاكهة - عناكب الكهوف - النمل الأبيض - ثعابين الكهوف",
+                "vegetation": "العشار - الطرفة - الرتم - أعشاب موسمية",
+                "activities": [
+                    {"name": "الزيارات العلمية", "season": ["طوال العام"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "الكهف الرئيسي", "description": "أطول كهف رسوبي في مصر (700م)", "accessibility": "متوسط"}
+                ],
+                "sources": [
+                    "Egyptian Environmental Affairs Agency (EEAA, 2023)",
+                    "Egyptian Geological Survey (EGS, 2021)"
+                ]
+            },
+            {
+                "id": "EG-22",
+                "name": "محمية طابا الطبيعية",
+                "type": "صحراوية جبلية",
+                "location": "جنوب سيناء",
+                "coordinates": [29.5000, 34.9000],
+                "declaration_year": 1998,
+                "area_km2": 3590,
+                "iucn_category": "IV",
+                "key_features": "نظام جبلي فريد - شبكة أودية - ينابيع كبريتية - نقوش صخرية تاريخية",
+                "wildlife": "الوبر الصخري - الغزال المصري - غزال الجبل - الثعلب الأحمر - الضبع المخطط",
+                "vegetation": "الطلح - السمر - النخيل القزم - العشار - الرتم - السويد",
+                "activities": [
+                    {"name": "رحلات الجمال", "season": ["أكتوبر", "أبريل"], "permit_required": true},
+                    {"name": "المشي لمسافات طويلة", "season": ["نوفمبر", "مارس"], "permit_required": true},
+                    {"name": "مراقبة الطيور", "season": ["سبتمبر", "أبريل"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "وادي وتير", "description": "أطول وادي في جنوب سيناء (50 كم)", "accessibility": "متوسط"},
+                    {"name": "جبل طابا", "description": "أعلى قمة في المحمية (2304م)", "accessibility": "صعب"},
+                    {"name": "عين حضرة", "description": "ينبوع كبريتي طبيعي - درجة حرارة 40°م", "accessibility": "سهل"}
+                ],
+                "sources": [
+                    "EEAA: Taba Protectorate Management Plan (2023)",
+                    "SIS: Protected Areas of Egypt (2022)"
+                ]
+            },
+            {
+                "id": "EG-23",
+                "name": "محمية وادي دجلة",
+                "type": "صحراوية جبلية",
+                "location": "القاهرة",
+                "coordinates": [29.9833, 31.4500],
+                "declaration_year": 1999,
+                "area_km2": 60,
+                "iucn_category": "IV",
+                "key_features": "وادي جاف عميق - كهوف كربوناتية - مستحاثات بحرية",
+                "wildlife": "ثعلب روبل - أرنب بري - وبر - الورل الصحراوي",
+                "vegetation": "الشيح - العجرم - الرتم - العشار - الطرفة",
+                "activities": [
+                    {"name": "التمشية", "season": ["أكتوبر", "أبريل"], "permit_required": false},
+                    {"name": "ركوب الدراجات الجبلية", "season": ["أكتوبر", "أبريل"], "permit_required": false},
+                    {"name": "التصوير الجيولوجي", "season": ["طوال العام"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "مجرى الوادي الرئيسي", "description": "مسارات بين التشكيلات الصخرية مع نقوش طبيعية", "accessibility": "سهل"},
+                    {"name": "منطقة الحفريات", "description": "طبقات صخرية تحوي مستحاثات بحرية عمرها 40 مليون سنة", "accessibility": "يتطلب مرشد"}
+                ],
+                "sources": [
+                    "Cairo Environmental Affairs",
+                    "EEAA.gov.eg"
+                ]
+            },
+            {
+                "id": "EG-24",
+                "name": "محمية سيوة",
+                "type": "واحة صحراوية",
+                "location": "مطروح",
+                "coordinates": [29.2000, 25.5167],
+                "declaration_year": 2002,
+                "area_km2": 7800,
+                "iucn_category": "V",
+                "key_features": "واحات نخيل - عيون كبريتية - بحيرات مالحة - كثبان رملية مرتفعة - كهوف جيرية",
+                "wildlife": "غزال مصري - ثعلب رمال - قط الرمال - أبو بريص",
+                "vegetation": "نخيل البلح - زيتون - مورينجا - شيح - طرفاء",
+                "activities": [
+                    {"name": "السياحة العلاجية", "season": ["طوال العام"], "permit_required": false},
+                    {"name": "زيارة الآثار", "season": ["أكتوبر", "أبريل"], "permit_required": false},
+                    {"name": "مراقبة الطيور", "season": ["سبتمبر", "مايو"], "permit_required": true},
+                    {"name": "التخييم الفلكي", "season": ["ديسمبر", "فبراير"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "معبد آمون", "description": "معبد فرعوني شهير (القرن 6 ق.م)", "accessibility": "سهل"},
+                    {"name": "عين كليوباترا", "description": "ينبوع ماء كبريتي دافئ (30°م)", "accessibility": "سهل"},
+                    {"name": "جزيرة فطناس", "description": "منطقة مراقبة الطيور المهاجرة على بحيرة مالحة", "accessibility": "يتطلب قارب"},
+                    {"name": "جبل الموتى", "description": "مقابر رومانية منحوتة في الجبل (القرن 3 م)", "accessibility": "متوسط"}
+                ],
+                "sources": [
+                    "Siwa Environmental Office",
+                    "EEAA.gov.eg"
+                ]
+            },
+            {
+                "id": "EG-25",
+                "name": "الصحراء البيضاء",
+                "type": "صحراوية",
+                "location": "الوادي الجديد",
+                "coordinates": [27.1833, 28.8833],
+                "declaration_year": 2002,
+                "area_km2": 3010,
+                "iucn_category": "II",
+                "key_features": "تشكيلات طباشيرية بيضاء نحتتها الرياح - منحوتات صخرية تشبه الفطر والأعمدة - متحف جيولوجي مفتوح - مرصد طبيعي لعلماء الفلك",
+                "wildlife": "الثعالب الصحراوية - الغزلان الصحراوية - الأرانب البرية - الذئاب المصرية - الزواحف الصحراوية",
+                "vegetation": "النباتات الصحراوية المتكيفة - الأعشاب والشجيرات البرية - النباتات الطبية الصحراوية - الصبارات والنباتات العصارية",
+                "activities": [
+                    {"name": "سفاري الصحراء", "season": ["أكتوبر", "أبريل"], "permit_required": true},
+                    {"name": "التصوير الفلكي ورصد النجوم", "season": ["طوال العام"], "permit_required": false},
+                    {"name": "التخييم الصحراوي", "season": ["أكتوبر", "أبريل"], "permit_required": true},
+                    {"name": "التصوير الفوتوغرافي للمنحوتات", "season": ["طوال العام"], "permit_required": false},
+                    {"name": "الجولات الجيولوجية التعليمية", "season": ["أكتوبر", "أبريل"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "الدائرة البيضاء", "description": "منطقة دائرية مميزة بتشكيلاتها الصخرية البيضاء", "accessibility": "سهل"},
+                    {"name": "جبل الكريستال", "description": "تكوينات كريستالية متلألئة", "accessibility": "متوسط"},
+                    {"name": "منطقة الفطر الصخري", "description": "تشكيلات صخرية تشبه الفطر العملاق", "accessibility": "سهل"},
+                    {"name": "وادي العجائب", "description": "وادي يحتوي على أشكال صخرية متنوعة", "accessibility": "متوسط"},
+                    {"name": "كهف جارة", "description": "كهف طبيعي داخل جبل العقبات الغربي", "accessibility": "صعب"},
+                    {"name": "منطقة الرصد الفلكي", "description": "موقع مثالي لرصد النجوم والكواكب", "accessibility": "سهل"}
+                ],
+                "sources": [
+                    "الهيئة العامة للاستعلامات المصرية",
+                    "جهاز شؤون البيئة - وزارة البيئة",
+                    "هيئة المساحة الجيولوجية المصرية"
+                ]
+            },
+            {
+                "id": "EG-26",
+                "name": "الجلف الكبير",
+                "type": "صحراوية",
+                "location": "الوادي الجديد",
+                "coordinates": [23.0000, 25.5000],
+                "declaration_year": 2007,
+                "area_km2": 48523,
+                "iucn_category": "II",
+                "key_features": "كهوف أثرية - هضاب جيولوجية - رسومات صخرية ما قبل التاريخ - تشكيلات جيولوجية فريدة",
+                "wildlife": "أنواع الغزلان الصحراوية - الثعالب الصحراوية - أنواع الطيور المهاجرة",
+                "vegetation": "نباتات صحراوية متكيفة",
+                "activities": [
+                    {"name": "البحث العلمي والأثري", "season": ["نوفمبر", "مارس"], "permit_required": true},
+                    {"name": "الاستكشاف الجيولوجي", "season": ["نوفمبر", "مارس"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "كهف السباحين", "description": "كهف يحتوي على رسومات صخرية ما قبل التاريخ", "accessibility": "صعب جداً"},
+                    {"name": "هضبة الجلف الكبير", "description": "تشكيل جيولوجي ضخم يرتفع عن المناطق المحيطة", "accessibility": "متوسط الصعوبة"}
+                ],
+                "sources": [
+                    "New Valley Protectorates Authority",
+                    "EEAA.gov.eg"
+                ]
+            },
+            {
+                "id": "EG-27",
+                "name": "الدبابية",
+                "type": "جيولوجية",
+                "location": "الأقصر",
+                "coordinates": [25.5167, 32.5333],
+                "declaration_year": 2007,
+                "area_km2": 1,
+                "iucn_category": "III",
+                "key_features": "قطاع جيولوجي نموذجي دولي - التتابع المكتمل بين عصري الباليوسين والإيوسين - حفريات بحرية عمرها 50-55 مليون سنة",
+                "wildlife": "حفريات اللافقاريات البحرية القديمة - الزواحف الصحراوية المحلية - الطيور المهاجرة",
+                "vegetation": "النباتات الصحراوية المتكيفة - الأعشاب والشجيرات الصحراوية النادرة - النباتات الطبية البرية",
+                "activities": [
+                    {"name": "الزيارات التعليمية والعلمية", "season": ["طوال العام"], "permit_required": true},
+                    {"name": "السياحة الجيولوجية", "season": ["أكتوبر", "أبريل"], "permit_required": true},
+                    {"name": "البحث العلمي والجيولوجي", "season": ["طوال العام"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "منطقة الحفريات البحرية الرئيسية", "description": "حفريات بحرية تمثل الحد الفاصل بين عصري الباليوسين والإيوسين", "accessibility": "متوسط"},
+                    {"name": "القطاع الجيولوجي النموذجي", "description": "أكمل القطاعات الطبقية في العالم", "accessibility": "سهل"},
+                    {"name": "مسار التراث الجيولوجي", "description": "مسار تعليمي يشرح تاريخ الأرض وتطور الحياة", "accessibility": "متوسط"}
+                ],
+                "sources": [
+                    "الهيئة العامة للاستعلامات المصرية",
+                    "جهاز شؤون البيئة - وزارة البيئة",
+                    "هيئة المساحة الجيولوجية المصرية"
+                ]
+            },
+            {
+                "id": "EG-28",
+                "name": "الواحات البحرية",
+                "type": "جيولوجية",
+                "location": "الجيزة",
+                "coordinates": [28.3500, 28.8667],
+                "declaration_year": 2010,
+                "area_km2": 109,
+                "iucn_category": "III",
+                "key_features": "ينابيع كبريتية - بحيرات مالحة - جبال سوداء بركانية",
+                "wildlife": "غزال دوركاس - غزال أبيض - ثعلب الفنك - ثعلب روبل - حبارى - ورل صحراوي",
+                "vegetation": "نخيل - عتم (زيتون بري) - أعشاب صحراوية (رتم، طرثوث)",
+                "activities": [
+                    {"name": "السياحة العلاجية", "season": ["طوال العام"], "permit_required": false},
+                    {"name": "زيارة متحف الحفريات", "season": ["طوال العام"], "permit_required": false},
+                    {"name": "السفاري الصحراوي", "season": ["أكتوبر", "أبريل"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "متحف الحفريات", "description": "حفريات حيتان عمرها 40 مليون سنة", "accessibility": "سهل"},
+                    {"name": "عين البيضا", "description": "ينبوع ماء كبريتي ساخن (45°م)", "accessibility": "سهل"},
+                    {"name": "الجبل الإنجليزي", "description": "موقع تاريخي من الحرب العالمية", "accessibility": "متوسط"}
+                ],
+                "sources": ["EEAA.gov.eg", "UNESCO"]
+            },
+            {
+                "id": "EG-29",
+                "name": "نيزك جبل كامل",
+                "type": "جيولوجية",
+                "location": "الوادي الجديد",
+                "coordinates": [22.0167, 26.0833],
+                "declaration_year": 2010,
+                "area_km2": 50,
+                "iucn_category": "III",
+                "key_features": "فوهة نيزكية قطرها 44.8 متر - عمق 15.8 متر - شظايا نيزكية حديدية - عمر أقل من 5,000 سنة",
+                "wildlife": "الوزغ الصحراوي - العقارب - الخنافس الصحراوية",
+                "vegetation": "نباتات صحراوية متناثرة",
+                "activities": [
+                    {"name": "الزيارات العلمية", "season": ["نوفمبر", "فبراير"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "فوهة النيزك", "description": "أول فوهة نيزكية مُكتشفة في مصر", "accessibility": "صعب"}
+                ],
+                "sources": [
+                    "Folco, L. et al. (2010) - Meteoritics & Planetary Science",
+                    "Egyptian Environmental Affairs Agency"
+                ]
+            },
+            {
+                "id": "EG-30",
+                "name": "جزر نهر النيل",
+                "type": "جزر داخلية",
+                "location": "9 محافظات (من أسوان إلى دمياط)",
+                "coordinates": [26.5000, 31.0000],
+                "declaration_year": 1998,
+                "area_km2": 160,
+                "iucn_category": "IV",
+                "key_features": "144 جزيرة نيلية - مستنقعات - غطاء نباتي - جزر ساحلية متأثرة بالمد",
+                "marine_life": "أسماك نيلية (بلطي، قرموط، لبيس، رنجة نيلية) - سلاحف مائية",
+                "wildlife": "طيور مائية (بط، غاق، أبو ملعقة، مالك الحزين) - ثعالب الماء - قنافذ الماء",
+                "vegetation": "نباتات مائية (بردى، لوتس) - أشجار (جميز، نخيل، صفصاف، طرفة)",
+                "activities": [
+                    {"name": "الرحلات النيلية", "season": ["سبتمبر", "مايو"], "permit_required": true},
+                    {"name": "مراقبة الطيور", "season": ["طوال العام"], "permit_required": false},
+                    {"name": "الصيد المنظم", "season": ["أكتوبر", "مارس"], "permit_required": true}
+                ],
+                "visit_sites": [
+                    {"name": "جزيرة النباتات (أسوان)", "description": "حديقة نباتية طبيعية تضم 300 نوع نباتي", "accessibility": "سهل"},
+                    {"name": "جزيرة الذهب (قنا)", "description": "محطة بحثية لمراقبة الطيور المهاجرة", "accessibility": "متوسط"},
+                    {"name": "جزيرة الرحمانية (أسيوط)", "description": "نموذج لتأهيل النظم البيئية للجزر", "accessibility": "سهل"}
+                ],
+                "sources": [
+                    "EEAA.gov.eg", 
+                    "Nile Islands Protection Project Report 2023"
+                ]
+            }
+        ];
+
+        // وظائف التصفية
+        document.addEventListener('DOMContentLoaded', function() {
+            renderParksCards(nationalParks);
+            setupFilters();
+            setupViewToggle();
+            renderCharts();
+            initMap();
+        });
+
+        let map; // متغير الخريطة
+
+        function initMap() {
+            // إنشاء الخريطة
+            map = L.map('map').setView([26.8206, 30.8025], 6);
+            
+            // إضافة طبقة الخريطة
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // إضافة علامات للمحميات
+            nationalParks.forEach(park => {
+                if (park.coordinates && park.coordinates.length === 2) {
+                    // تحديد لون العلامة بناءً على نوع المحمية
+                    let markerColor;
+                    switch(park.type) {
+                        case 'بحرية':
+                            markerColor = '#2196F3'; // أزرق
+                            break;
+                        case 'أراضي رطبة':
+                            markerColor = '#4CAF50'; // أخضر
+                            break;
+                        case 'صحراوية':
+                            markerColor = '#FF9800'; // برتقالي
+                            break;
+                        case 'جيولوجية':
+                            markerColor = '#9C27B0'; // بنفسجي
+                            break;
+                        case 'جبلية':
+                            markerColor = '#795548'; // بني
+                            break;
+                        case 'ساحلية':
+                            markerColor = '#00BCD4'; // سماوي
+                            break;
+                        case 'محيط حيوي':
+                            markerColor = '#E91E63'; // وردي
+                            break;
+                        default:
+                            markerColor = '#607D8B'; // رمادي
+                    }
+                    
+                    // إنشاء علامة
+                    const marker = L.marker([park.coordinates[0], park.coordinates[1]], {
+                        title: park.name
+                    }).addTo(map);
+                    
+                    // إضافة نافذة معلومات عند النقر
+                    marker.bindPopup(`
+                        <div style="font-family: 'Tajawal', sans-serif; min-width: 250px;">
+                            <h3 style="margin: 0; color: #1a5632;">${park.name}</h3>
+                            <p style="margin: 5px 0; font-weight: bold; color: #2a8c4a;">${park.type}</p>
+                            <p style="margin: 5px 0;"><i class="fas fa-map-marker-alt"></i> ${park.location}</p>
+                            <p style="margin: 5px 0;"><i class="fas fa-ruler-combined"></i> المساحة: ${park.area_km2.toLocaleString()} كم²</p>
+                            <p style="margin: 5px 0;"><i class="fas fa-calendar-alt"></i> سنة الإعلان: ${park.declaration_year}</p>
+                            <a href="#" class="source-link" onclick="showParkDetails('${park.id}')">عرض التفاصيل</a>
+                        </div>
+                    `);
+                }
+            });
+            
+            // إضافة وسيلة إيضاحية
+            const legend = L.control({position: 'bottomright'});
+            
+            legend.onAdd = function(map) {
+                const div = L.DomUtil.create('div', 'map-legend');
+                div.innerHTML = `
+                    <h4 style="margin-bottom: 10px;">وسيلة إيضاحية</h4>
+                    <div class="legend-item"><div class="legend-color" style="background-color: #2196F3;"></div> بحرية</div>
+                    <div class="legend-item"><div class="legend-color" style="background-color: #4CAF50;"></div> أراضي رطبة</div>
+                    <div class="legend-item"><div class="legend-color" style="background-color: #FF9800;"></div> صحراوية</div>
+                    <div class="legend-item"><div class="legend-color" style="background-color: #9C27B0;"></div> جيولوجية</div>
+                    <div class="legend-item"><div class="legend-color" style="background-color: #795548;"></div> جبلية</div>
+                    <div class="legend-item"><div class="legend-color" style="background-color: #00BCD4;"></div> ساحلية</div>
+                    <div class="legend-item"><div class="legend-color" style="background-color: #E91E63;"></div> محيط حيوي</div>
+                `;
+                return div;
+            };
+            
+            legend.addTo(map);
+        }
+
+        function showParkDetails(parkId) {
+            // البحث عن المحمية المحددة
+            const park = nationalParks.find(p => p.id === parkId);
+            if (!park) return;
+            
+            // تغيير العرض إلى البطاقات
+            document.getElementById('view-cards').click();
+            
+            // تصفية البطاقات لإظهار المحمية المحددة فقط
+            document.getElementById('search-input').value = park.name;
+            document.getElementById('type-filter').value = 'all';
+            document.getElementById('location-filter').value = 'all';
+            document.getElementById('iucn-filter').value = 'all';
+            
+            filterParks();
+            
+            // تمرير المحمية إلى أعلى الصفحة
+            setTimeout(() => {
+                const parkCard = document.querySelector(`.card:contains("${park.name}")`);
+                if (parkCard) {
+                    parkCard.scrollIntoView({behavior: 'smooth', block: 'start'});
+                    parkCard.style.animation = 'highlight 2s ease';
+                }
+            }, 300);
+        }
+
+        // دالة مساعدة للبحث في النص
+        Element.prototype.contains = function(text) {
+            return this.innerText && this.innerText.includes(text);
+        };
+
+        function renderParksCards(parks) {
+            const container = document.getElementById('parks-container');
+            container.innerHTML = '';
+            
+            if (parks.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search fa-3x" style="margin-bottom: 20px;"></i>
+                        <h2>لم يتم العثور على محميات</h2>
+                        <p>لا توجد محميات تطابق معايير البحث المحددة. يرجى محاولة تغيير عوامل التصفية.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            parks.forEach(park => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.id = park.id;
+                
+                // إنشاء البطاقات
+                let badgesHTML = '';
+                if (park.unesco_status) {
+                    badgesHTML += '<span class="badge unesco-badge">اليونسكو</span>';
+                }
+                if (park.ramsar_site) {
+                    badgesHTML += '<span class="badge ramsar-badge">رامسار</span>';
+                }
+                
+                const iucnClass = `iucn-${park.iucn_category}`;
+                badgesHTML += `<span class="badge ${iucnClass}">IUCN ${park.iucn_category}</span>`;
+                
+                // أنشطة
+                let activitiesHTML = '';
+                park.activities.forEach(activity => {
+                    let seasonText = activity.season[0] === 'طوال العام' ? 'طوال العام' : 
+                        Array.isArray(activity.season) ? 
+                        activity.season.join('، ') : 
+                        activity.season;
+                        
+                    activitiesHTML += `
+                        <div class="activity">
+                            <i class="fas ${getActivityIcon(activity.name)}"></i>
+                            ${activity.name}
+                            <span style="font-size: 0.8em; opacity: 0.8;">(${seasonText})</span>
+                        </div>
+                    `;
+                });
+                
+                // مواقع الزيارة
+                let sitesHTML = '';
+                park.visit_sites.forEach(site => {
+                    sitesHTML += `
+                        <li><strong>${site.name}:</strong> ${site.description} (${site.accessibility})</li>
+                    `;
+                });
+                
+                // مصادر
+                let sourcesHTML = '';
+                park.sources.forEach((source, index) => {
+                    const sourceText = source.startsWith('http') ? 'رابط' : source;
+                    if (source.startsWith('http')) {
+                        sourcesHTML += `<a href="${source}" class="source-link" target="_blank">${sourceText}</a>`;
+                    } else {
+                        sourcesHTML += `<span>${sourceText}</span>`;
+                    }
+                    if (index < park.sources.length - 1) {
+                        sourcesHTML += ' | ';
+                    }
+                });
+                
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">${park.name}</h3>
+                            <div class="card-type">${park.type}</div>
+                        </div>
+                        <div>${badgesHTML}</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-meta">
+                            <div><i class="fas fa-map-marker-alt"></i> ${park.location}</div>
+                            <div class="card-area">${park.area_km2.toLocaleString()} كم²</div>
+                        </div>
+                        
+                        <div class="card-features">
+                            <div class="feature-title"><i class="fas fa-mountain"></i> السمات الرئيسية</div>
+                            <p>${park.key_features}</p>
+                        </div>
+                        
+                        ${park.wildlife ? `
+                        <div class="card-features">
+                            <div class="feature-title"><i class="fas fa-paw"></i> الحياة البرية</div>
+                            <p>${park.wildlife}</p>
+                        </div>
+                        ` : ''}
+                        
+                        ${park.vegetation ? `
+                        <div class="card-features">
+                            <div class="feature-title"><i class="fas fa-leaf"></i> النباتات</div>
+                            <p>${park.vegetation}</p>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="card-features">
+                            <div class="feature-title"><i class="fas fa-map-marked-alt"></i> مواقع الزيارة</div>
+                            <ul class="feature-list">${sitesHTML}</ul>
+                        </div>
+                        
+                        <div class="activities">${activitiesHTML}</div>
+                    </div>
+                    <div class="card-footer">
+                        <span><i class="fas fa-calendar-alt"></i> ${park.declaration_year}</span>
+                        <div>${sourcesHTML}</div>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        function getActivityIcon(activityName) {
+            const icons = {
+                "الغوص": "fa-water",
+                "الغوص الحر": "fa-swimmer",
+                "الغطس الحر": "fa-swimmer",
+                "السنوركلنج": "fa-swimmer",
+                "رحلات القوارب": "fa-ship",
+                "مراقبة الطيور": "fa-binoculars",
+                "التصوير الفوتوغرافي": "fa-camera",
+                "السفاري": "fa-hiking",
+                "السفاري الجبلية": "fa-hiking",
+                "السفاري الصحراوية": "fa-hiking",
+                "التخييم": "fa-campground",
+                "رحلات الجمال": "fa-camel",
+                "السباحة": "fa-swimming-pool",
+                "صيد السمك": "fa-fish",
+                "زيارة الآثار": "fa-landmark",
+                "مراقبة الحياة البرية": "fa-eye",
+                "تسلق الجبال": "fa-mountain",
+                "مراقبة النجوم": "fa-star",
+                "المشي لمسافات طويلة": "fa-hiking",
+                "الرحلات النيلية": "fa-ship",
+                "التمشية": "fa-walking",
+                "ركوب الدراجات": "fa-bicycle",
+                "ركوب الدراجات الجبلية": "fa-bicycle",
+                "السياحة العلاجية": "fa-spa",
+                "التصوير الفلكي": "fa-moon",
+                "التصوير الجيولوجي": "fa-camera",
+                "الاستكشاف العلمي": "fa-microscope",
+                "الزيارات التعليمية": "fa-graduation-cap",
+                "الزيارات العلمية": "fa-flask",
+                "البحث العلمي": "fa-flask",
+                "رصد النباتات النادرة": "fa-seedling",
+                "دراسة النباتات المتكيفة": "fa-seedling",
+                "رصد النباتات النادرة": "fa-seedling"
+            };
+            
+            return icons[activityName] || "fa-map-signs";
+        }
+
+        function setupFilters() {
+            const searchInput = document.getElementById('search-input');
+            const typeFilter = document.getElementById('type-filter');
+            const locationFilter = document.getElementById('location-filter');
+            const iucnFilter = document.getElementById('iucn-filter');
+            
+            const filterElements = [searchInput, typeFilter, locationFilter, iucnFilter];
+            
+            filterElements.forEach(element => {
+                element.addEventListener('change', filterParks);
+                element.addEventListener('input', filterParks);
+            });
+        }
+
+        function filterParks() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const typeValue = document.getElementById('type-filter').value;
+            const locationValue = document.getElementById('location-filter').value;
+            const iucnValue = document.getElementById('iucn-filter').value;
+            
+            const filteredParks = nationalParks.filter(park => {
+                // البحث النصي
+                const matchesSearch = 
+                    park.name.toLowerCase().includes(searchTerm) ||
+                    park.location.toLowerCase().includes(searchTerm) ||
+                    park.key_features.toLowerCase().includes(searchTerm) ||
+                    (park.wildlife && park.wildlife.toLowerCase().includes(searchTerm)) ||
+                    (park.vegetation && park.vegetation.toLowerCase().includes(searchTerm));
+                
+                // تصفية النوع
+                const matchesType = typeValue === 'all' || park.type === typeValue;
+                
+                // تصفية الموقع
+                const matchesLocation = locationValue === 'all' || park.location.includes(locationValue);
+                
+                // تصفية فئة IUCN
+                const matchesIUCN = iucnValue === 'all' || park.iucn_category === iucnValue.split(' ')[0];
+                
+                return matchesSearch && matchesType && matchesLocation && matchesIUCN;
+            });
+            
+            renderParksCards(filteredParks);
+        }
+
+        function setupViewToggle() {
+            const viewCardsBtn = document.getElementById('view-cards');
+            const viewMapBtn = document.getElementById('view-map');
+            const viewStatsBtn = document.getElementById('view-stats');
+            
+            const cardsView = document.getElementById('cards-view');
+            const mapView = document.getElementById('map-view');
+            const statsView = document.getElementById('stats-view');
+            
+            viewCardsBtn.addEventListener('click', () => {
+                viewCardsBtn.classList.add('active');
+                viewMapBtn.classList.remove('active');
+                viewStatsBtn.classList.remove('active');
+                
+                cardsView.style.display = 'block';
+                mapView.style.display = 'none';
+                statsView.style.display = 'none';
+            });
+            
+            viewMapBtn.addEventListener('click', () => {
+                viewCardsBtn.classList.remove('active');
+                viewMapBtn.classList.add('active');
+                viewStatsBtn.classList.remove('active');
+                
+                cardsView.style.display = 'none';
+                mapView.style.display = 'block';
+                statsView.style.display = 'none';
+                
+                // تحديث الخريطة لضمان عرضها بشكل صحيح
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 100);
+            });
+            
+            viewStatsBtn.addEventListener('click', () => {
+                viewCardsBtn.classList.remove('active');
+                viewMapBtn.classList.remove('active');
+                viewStatsBtn.classList.add('active');
+                
+                cardsView.style.display = 'none';
+                mapView.style.display = 'none';
+                statsView.style.display = 'block';
+            });
+        }
+
+        function renderCharts() {
+            // تجميع البيانات للإحصائيات
+            const typeData = {};
+            const areaData = {};
+            const yearData = {};
+            const iucnData = {};
+            
+            nationalParks.forEach(park => {
+                // حسب النوع
+                typeData[park.type] = (typeData[park.type] || 0) + 1;
+                
+                // حسب المساحة
+                areaData[park.type] = (areaData[park.type] || 0) + park.area_km2;
+                
+                // حسب السنة
+                yearData[park.declaration_year] = (yearData[park.declaration_year] || 0) + 1;
+                
+                // حسب فئة IUCN
+                iucnData[park.iucn_category] = (iucnData[park.iucn_category] || 0) + 1;
+            });
+            
+            // ألوان للرسوم البيانية
+            const colors = [
+                '#2a8c4a', '#3daa62', '#4caf50', '#8bc34a', '#cddc39',
+                '#ffc107', '#ff9800', '#ff5722', '#f44336', '#9c27b0',
+                '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4'
+            ];
+            
+            // رسم بياني لتوزيع الأنواع
+            const typeCtx = document.getElementById('typeChart').getContext('2d');
+            new Chart(typeCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(typeData),
+                    datasets: [{
+                        data: Object.values(typeData),
+                        backgroundColor: colors.slice(0, Object.keys(typeData).length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            rtl: true
+                        },
+                        tooltip: {
+                            rtl: true
+                        }
+                    }
+                }
+            });
+            
+            // رسم بياني للمساحة حسب النوع
+            const areaCtx = document.getElementById('areaChart').getContext('2d');
+            new Chart(areaCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(areaData),
+                    datasets: [{
+                        label: 'المساحة الإجمالية (كم²)',
+                        data: Object.values(areaData),
+                        backgroundColor: '#2a8c4a',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            rtl: true
+                        },
+                        tooltip: {
+                            rtl: true
+                        }
+                    }
+                }
+            });
+            
+            // رسم بياني للمحميات حسب السنة
+            const yearCtx = document.getElementById('yearChart').getContext('2d');
+            const years = Object.keys(yearData).sort();
+            new Chart(yearCtx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [{
+                        label: 'عدد المحميات المعلنة',
+                        data: years.map(year => yearData[year]),
+                        backgroundColor: 'rgba(42, 140, 74, 0.2)',
+                        borderColor: '#2a8c4a',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            rtl: true
+                        },
+                        tooltip: {
+                            rtl: true
+                        }
+                    }
+                }
+            });
+            
+            // رسم بياني لتوزيع فئات IUCN
+            const iucnCtx = document.getElementById('iucnChart').getContext('2d');
+            new Chart(iucnCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(iucnData).map(cat => `IUCN ${cat}`),
+                    datasets: [{
+                        data: Object.values(iucnData),
+                        backgroundColor: ['#4caf50', '#cddc39', '#ffc107', '#ff9800', '#f44336'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            rtl: true
+                        },
+                        tooltip: {
+                            rtl: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
